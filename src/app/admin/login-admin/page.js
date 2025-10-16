@@ -4,91 +4,91 @@ import { useRouter } from "next/navigation";
 import { apiPost } from "@/lib/api";
 
 export default function LoginPage() {
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [msg, setMsg] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
-  const handleLogin = async (e) => {
+  async function handleLogin(e) {
     e.preventDefault();
     setMsg("");
-    setLoading(true);
 
+    if (!email?.trim() || !password?.trim()) {
+      setMsg("กรอกอีเมล/รหัสผ่านก่อน");
+      return;
+    }
+
+    setLoading(true);
     try {
-      const res = await apiPost("/api/psu_auth/login", {
-        username: username.trim(),
+      const res = await apiPost("/api/login-api-triup/login", {
+        email,
         password,
       });
 
-      if (res?.success) {
-        // ✅ เก็บข้อมูล session + user + profile (ถ้ามี) ลง localStorage
-        if (typeof window !== "undefined") {
-          const psuSession = {
-            token: res.session?.token || null,
-            user: res.user || null,
-            profile: res.profile || null, // ถ้า backend ส่ง profile กลับมา
-          };
-          localStorage.setItem("psuSession", JSON.stringify(psuSession));
-        }
+      const token = res?.session?.id;
+      const expISO = res?.session?.expiresAt;
 
-        // ไปหน้า home (หรือหน้าอื่นตามที่ใช้จริง)
-        router.push("/user-psu/home");
+      if (res?.success && token && expISO) {
+        const expMs = new Date(expISO).getTime();
+        localStorage.setItem("token", token);
+        localStorage.setItem("token_exp", String(expMs));
+
+        router.replace("/admin/dashboard");
       } else {
-        setMsg(res?.message || "ไม่สามารถเข้าสู่ระบบได้");
+        setMsg(res?.error || "username หรือ password ไม่ถูกต้อง");
       }
     } catch (err) {
-      console.error(err);
-      setMsg("เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์");
+      setMsg(err?.message || "เกิดข้อผิดพลาด");
     } finally {
       setLoading(false);
     }
-  };
+  }
 
   return (
     <main
       className="min-h-screen flex items-center justify-center px-6"
       style={{
-        background: "linear-gradient(135deg, #D3D8DCFF 0%, #156BECFF 100%)",
+        background: "linear-gradient(135deg, #D3D5DCFF 0%, #C50A0AFF 100%)",
       }}
     >
       <div className="flex w-full max-w-5xl min-h-[420px] bg-white/10 backdrop-blur-xl shadow-2xl rounded-3xl overflow-hidden">
         <div
           className="hidden md:flex flex-col justify-center p-12 w-1/2"
           style={{
-            background: "linear-gradient(135deg, #1168CBFF, #6591F0FF)",
+            background: "linear-gradient(135deg, #CB1111FF, #6571F0FF)",
             color: "white",
           }}
         >
           <h2 className="text-4xl font-extrabold mb-4 drop-shadow-lg">
-            Welcome to website
+            ฮั่นแน่ admin เหรออ!?
           </h2>
         </div>
 
         <div className="flex flex-col justify-center p-10 w-full md:w-1/2 bg-white">
-          <h1 className="text-sm font-semibold text-center tracking-[0.2em] text-[#4644CFFF]">
-            LOGIN
+          <h1 className="text-sm font-semibold text-center tracking-[0.2em] text-[#FE0505FF]">
+            LOGIN ADMIN
           </h1>
 
           <form onSubmit={handleLogin} className="mt-8 space-y-4">
             <input
-              type="text"
-              placeholder="Username"
-              autoComplete="username"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
+              type="email"
+              placeholder="อีเมลหนะ"
+              autoComplete="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               required
-              className="w-full p-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-[#2711CBFF] focus:outline-none text-sm"
+              className="w-full p-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-[#CB1111FF] focus:outline-none text-sm"
             />
 
             <input
               type="password"
-              placeholder="Password"
+              placeholder="รหัสสๆๆๆ"
               autoComplete="current-password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              className="w-full p-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-[#2111CBFF] focus:outline-none text-sm"
+              className="w-full p-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-[#CB1111FF] focus:outline-none text-sm"
             />
 
             <button
@@ -97,10 +97,10 @@ export default function LoginPage() {
               className="mt-2 w-full py-3 rounded-xl text-white font-semibold shadow-lg transition text-sm disabled:opacity-70 disabled:cursor-not-allowed"
               style={{
                 background:
-                  "linear-gradient(135deg, #62A7E3FF 0%, #4A64D9FF 100%)",
+                  "linear-gradient(135deg, #E36262FF 0%, #4A77D9FF 100%)",
               }}
             >
-              {loading ? "กำลังเข้าสู่ระบบ..." : "LOGIN"}
+              {loading ? "กำลังเข้าสู่ระบบ..." : "GOOO"}
             </button>
           </form>
 
