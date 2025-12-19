@@ -6,8 +6,7 @@ import { ShieldAlert, ArrowLeft } from "lucide-react";
 export default function Forbidden() {
   return (
     <main className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white">
-      
-      {/* Glow background */}
+
       <div className="absolute -top-32 -left-32 h-96 w-96 rounded-full bg-red-600/30 blur-3xl animate-pulse" />
       <div className="absolute bottom-0 right-0 h-96 w-96 rounded-full bg-gray-500/20 blur-3xl" />
 
