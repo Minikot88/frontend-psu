@@ -34,6 +34,10 @@ export default function LoginPage() {
         const expMs = new Date(expISO).getTime();
         localStorage.setItem("token", token);
         localStorage.setItem("token_exp", String(expMs));
+        // Keep middleware-compatible cookie in sync with admin bearer token.
+        document.cookie = `admin_session=${encodeURIComponent(
+          token
+        )}; Path=/; SameSite=Lax; Expires=${new Date(expMs).toUTCString()}`;
 
         router.replace("/admin/dashboard");
       } else {

@@ -1,19 +1,19 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 
 export async function middleware(req) {
   const { pathname } = req.nextUrl;
 
-  // ไม่ใช่ admin → ผ่าน
+  // à¹„à¸¡à¹ˆà¹ƒà¸Šà¹ˆ admin â†’ à¸œà¹ˆà¸²à¸™
   if (!pathname.startsWith("/admin")) {
     return NextResponse.next();
   }
 
-  // หน้า login-admin → ผ่าน
+  // à¸«à¸™à¹‰à¸² login-admin â†’ à¸œà¹ˆà¸²à¸™
   if (pathname.startsWith("/admin/login-admin")) {
     return NextResponse.next();
   }
 
-  // อ่าน cookie admin
+  // à¸­à¹ˆà¸²à¸™ cookie admin
   const token = req.cookies.get("admin_session")?.value;
 
   if (!token) {
@@ -35,9 +35,13 @@ export async function middleware(req) {
     if (!res.ok) throw new Error("invalid");
 
     const data = await res.json();
+    const roleId =
+      data?.user?.roles_id ??
+      data?.session?.roles_id ??
+      data?.role?.roles_id;
 
-    // อนุญาตเฉพาะ ADMIN (1000) / CEO (900)
-    if (![1000, 900].includes(data.user.roles_id)) {
+    // à¸­à¸™à¸¸à¸à¸²à¸•à¹€à¸‰à¸žà¸²à¸° ADMIN (1000) / CEO (900)
+    if (![1000, 900].includes(roleId)) {
       const url = req.nextUrl.clone();
       url.pathname = "/403";
       return NextResponse.redirect(url);
@@ -54,3 +58,5 @@ export async function middleware(req) {
 export const config = {
   matcher: ["/admin/:path*"],
 };
+
+

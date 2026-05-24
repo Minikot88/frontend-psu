@@ -79,6 +79,8 @@ export default function UsersPage() {
       localStorage.removeItem("token");
       localStorage.removeItem("token_exp");
       localStorage.removeItem("roles_id");
+      document.cookie =
+        "admin_session=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax";
 
       router.replace("/user-psu/home");
     }

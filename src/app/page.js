@@ -1,26 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import Image from "next/image";
 
 export default function LoginPage() {
-  const router = useRouter();
-  const [checking, setChecking] = useState(true);
-
-  useEffect(() => {
-    fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/psu/me`, {
-      credentials: "include",
-    })
-      .then((res) => {
-        if (res.ok) router.replace("/user-psu/home");
-        else setChecking(false);
-      })
-      .catch(() => setChecking(false));
-  }, [router]);
-
-  if (checking) return null;
-
   return (
     <main className="min-h-screen relative overflow-hidden bg-gradient-to-br from-slate-50 via-white to-slate-100">
       {/* ===== BACKGROUND LINES ===== */}

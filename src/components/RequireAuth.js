@@ -12,10 +12,17 @@ export default function RequireAuth({ children }) {
       credentials: "include",
     })
       .then((res) => {
-        if (!res.ok) throw new Error("unauth");
-        return res.json();
+        if (res.status === 401) {
+          router.replace("/login");
+          return null;
+        }
+        if (!res.ok) {
+          router.replace("/login");
+          return null;
+        }
+        setReady(true);
+        return null;
       })
-      .then(() => setReady(true))
       .catch(() => router.replace("/login"));
   }, [router]);
 

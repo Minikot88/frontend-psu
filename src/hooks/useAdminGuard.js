@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -8,25 +8,37 @@ export default function useAdminGuard() {
   const [allowed, setAllowed] = useState(false);
 
   useEffect(() => {
-    fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/psu/me`, {
-      credentials: "include",
+    const token = localStorage.getItem("token");
+    if (!token) {
+      router.replace("/admin/login-admin");
+      return;
+    }
+
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/login-api-triup/me`, {
+      headers: { Authorization: `Bearer ${token}` },
     })
       .then(async (res) => {
+        if (res.status === 401) {
+          router.replace("/admin/login-admin");
+          return;
+        }
         if (!res.ok) {
-          // ❌ ไม่ได้ login
           router.replace("/admin/login-admin");
           return;
         }
 
         const data = await res.json();
 
-        // ❌ ไม่มี role หรือไม่ใช่ admin
-        if (!data.role || data.role.roles_id !== 1000) {
+        const roleId =
+          data?.user?.roles_id ??
+          data?.session?.roles_id ??
+          data?.role?.roles_id;
+
+        if (![900, 1000].includes(Number(roleId))) {
           router.replace("/user-psu/home");
           return;
         }
 
-        // ✅ เป็น admin
         setAllowed(true);
       })
       .catch(() => {

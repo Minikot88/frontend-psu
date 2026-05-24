@@ -13,10 +13,19 @@ export default function ProfilePage() {
       credentials: "include",
     })
       .then((res) => {
-        if (!res.ok) throw new Error("not login");
+        if (res.status === 401) {
+          router.replace("/");
+          return null;
+        }
+        if (!res.ok) {
+          router.replace("/");
+          return null;
+        }
         return res.json();
       })
-      .then((json) => setData(json))
+      .then((json) => {
+        if (json) setData(json);
+      })
       .catch(() => router.replace("/"));
   }, [router]);
 
