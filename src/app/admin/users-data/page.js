@@ -1,17 +1,10 @@
-// src/app/admin/users-data/page.js
-"use client";
+﻿"use client";
 
 import SidebarLayout from "@/components/SidebarLayout";
 import Link from "next/link";
 import { useEffect, useState, useMemo } from "react";
-import { useRouter } from "next/navigation";
-
-import { isAdmin, isCeo } from "@/utils/role";
-import { isAdminLoggedIn } from "@/utils/auth-admin";
 
 export default function UsersPage() {
-  const router = useRouter();
-
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -60,17 +53,12 @@ export default function UsersPage() {
     const keyword = search.toLowerCase();
 
     return users.filter((u) => {
-      const matchSearch = [
-        u.username,
-        u.profile?.fullname,
-        roleMap[u.roles_id]?.name,
-      ]
+      const matchSearch = [u.username, u.profile?.fullname, roleMap[u.roles_id]?.name]
         .join(" ")
         .toLowerCase()
         .includes(keyword);
 
-      const matchRole =
-        roleFilter === "all" || Number(roleFilter) === u.roles_id;
+      const matchRole = roleFilter === "all" || Number(roleFilter) === u.roles_id;
 
       return matchSearch && matchRole;
     });
@@ -107,17 +95,17 @@ export default function UsersPage() {
 
     return final.map((p, i) =>
       p === "..." ? (
-        <span key={i} className="px-2 text-xs text-gray-400">
+        <span key={i} className="px-2 text-xs text-slate-400">
           …
         </span>
       ) : (
         <button
           key={p}
           onClick={() => setCurrentPage(p)}
-          className={`px-3 py-1 rounded-md text-xs border transition ${
+          className={`rounded-lg border px-3 py-1 text-xs transition ${
             p === currentPage
-              ? "bg-gray-900 text-white border-gray-900"
-              : "bg-white text-gray-600 hover:bg-gray-100 border-gray-300"
+              ? "border-[#0b3a75] bg-[#0b3a75] text-white"
+              : "border-slate-300 bg-white text-slate-600 hover:bg-slate-50"
           }`}
         >
           {p}
@@ -128,97 +116,93 @@ export default function UsersPage() {
 
   return (
     <SidebarLayout>
-      <div className="max-w-6xl mx-auto p-6 space-y-6">
-
-        {/* Header */}
-        <header className="border-b border-gray-200 pb-4">
-          <h1 className="text-lg font-semibold text-gray-900">
-            จัดการผู้ใช้งาน
-          </h1>
-          <p className="text-xs text-gray-500 mt-1">
-            รายชื่อผู้ใช้และสิทธิ์การเข้าถึงในระบบ
-          </p>
+      <div className="app-shell space-y-5">
+        <header className="page-hero px-6 py-6">
+          <h1 className="text-2xl font-semibold">จัดการผู้ใช้งาน</h1>
+          <p className="mt-1 text-sm text-blue-100">ตรวจสอบข้อมูลผู้ใช้และกำหนดสิทธิ์การใช้งานระบบ</p>
         </header>
 
-        {/* Search + Filter */}
-        <div className="flex flex-wrap gap-3">
-          <input
-            type="text"
-            placeholder="ค้นหา username / ชื่อ / role"
-            className="px-3 py-2 text-xs border border-gray-300 rounded-md w-64 focus:outline-none focus:ring-1 focus:ring-gray-400"
-            value={search}
-            onChange={(e) => {
-              setSearch(e.target.value);
-              setCurrentPage(1);
-            }}
-          />
+        <section className="section-card p-4 sm:p-5">
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+            <div className="grid w-full gap-3 sm:grid-cols-2 lg:max-w-2xl">
+              <div>
+                <label className="field-label" htmlFor="user-search">
+                  ค้นหา
+                </label>
+                <input
+                  id="user-search"
+                  type="text"
+                  placeholder="username / ชื่อ / role"
+                  className="form-input"
+                  value={search}
+                  onChange={(e) => {
+                    setSearch(e.target.value);
+                    setCurrentPage(1);
+                  }}
+                />
+              </div>
 
-          <select
-            className="px-3 py-2 text-xs border border-gray-300 rounded-md w-56 bg-white"
-            value={roleFilter}
-            onChange={(e) => {
-              setRoleFilter(e.target.value);
-              setCurrentPage(1);
-            }}
-          >
-            <option value="all">Role ทั้งหมด</option>
+              <div>
+                <label className="field-label" htmlFor="role-filter">
+                  กรองตาม role
+                </label>
+                <select
+                  id="role-filter"
+                  className="form-select"
+                  value={roleFilter}
+                  onChange={(e) => {
+                    setRoleFilter(e.target.value);
+                    setCurrentPage(1);
+                  }}
+                >
+                  <option value="all">Role ทั้งหมด</option>
+                  {Object.entries(roleMap)
+                    .sort((a, b) => Number(a[0]) - Number(b[0]))
+                    .map(([id, role]) => (
+                      <option key={id} value={id}>
+                        {role.name} ({roleCount[id] || 0})
+                      </option>
+                    ))}
+                </select>
+              </div>
+            </div>
 
-            {Object.entries(roleMap)
-              .sort((a, b) => Number(a[0]) - Number(b[0]))
-              .map(([id, role]) => (
-                <option key={id} value={id}>
-                  {role.name} ({roleCount[id] || 0})
-                </option>
-              ))}
-          </select>
-        </div>
+            <div className="text-xs text-slate-500">ทั้งหมด {filteredUsers.length} รายการ</div>
+          </div>
+        </section>
 
-        {/* Table */}
-        <div className="border border-gray-200 rounded-xl bg-white overflow-hidden">
+        <section className="section-card p-3 sm:p-4">
           {loading ? (
-            <div className="p-6 text-sm text-gray-500">กำลังโหลดข้อมูล...</div>
+            <div className="state-box">กำลังโหลดข้อมูลผู้ใช้งาน...</div>
           ) : error ? (
-            <div className="p-6 text-sm text-red-600">{error}</div>
+            <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">{error}</div>
           ) : filteredUsers.length === 0 ? (
-            <div className="p-6 text-sm text-gray-500">ไม่พบข้อมูล</div>
+            <div className="state-box">ไม่พบข้อมูลผู้ใช้งานตามเงื่อนไขที่ค้นหา</div>
           ) : (
             <>
-              <div className="overflow-x-auto">
-                <table className="min-w-full text-xs">
-                  <thead className="bg-gray-50 border-b border-gray-200">
+              <div className="table-wrap scrollbar-thin">
+                <table className="data-table min-w-[780px]">
+                  <thead>
                     <tr>
-                      <th className="px-4 py-2 text-left font-medium text-gray-600">
-                        Username
-                      </th>
-                      <th className="px-4 py-2 text-left font-medium text-gray-600">
-                        ชื่อ - นามสกุล
-                      </th>
-                      <th className="px-4 py-2 text-left font-medium text-gray-600">
-                        Role
-                      </th>
-                      <th className="px-4 py-2 text-right font-medium text-gray-600">
-                        การจัดการ
-                      </th>
+                      <th>Username</th>
+                      <th>ชื่อ - นามสกุล</th>
+                      <th>Role</th>
+                      <th className="text-right">รายละเอียด</th>
                     </tr>
                   </thead>
 
                   <tbody>
                     {paginated.map((u) => (
-                      <tr
-                        key={u.user_pk_uuid}
-                        className="border-b border-gray-100 hover:bg-gray-50"
-                      >
-                        <td className="px-4 py-2">{u.username}</td>
-                        <td className="px-4 py-2">
-                          {u.profile?.fullname || "-"}
+                      <tr key={u.user_pk_uuid}>
+                        <td>{u.username || "-"}</td>
+                        <td>{u.profile?.fullname || "-"}</td>
+                        <td>
+                          <span className="chip bg-blue-50 text-blue-800">{roleMap[u.roles_id]?.name || "-"}</span>
                         </td>
-                        <td className="px-4 py-2">
-                          {roleMap[u.roles_id]?.name}
-                        </td>
-                        <td className="px-4 py-2 text-right">
+                        <td className="text-right">
                           <Link
                             href={`/admin/users-data/${u.user_pk_uuid}`}
-                            className="text-xs text-gray-700 hover:underline"
+                            className="btn-secondary inline-flex px-3 py-1.5 text-xs"
                           >
                             ดูรายละเอียด
                           </Link>
@@ -229,12 +213,10 @@ export default function UsersPage() {
                 </table>
               </div>
 
-              <div className="flex justify-end gap-2 px-4 py-3">
-                {renderPagination()}
-              </div>
+              <div className="mt-4 flex justify-end gap-2">{renderPagination()}</div>
             </>
           )}
-        </div>
+        </section>
       </div>
     </SidebarLayout>
   );

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -26,6 +26,13 @@ export default function RequireAuth({ children }) {
       .catch(() => router.replace("/login"));
   }, [router]);
 
-  if (!ready) return null;
+  if (!ready) {
+    return (
+      <div className="flex min-h-[50vh] items-center justify-center">
+        <div className="state-box">กำลังตรวจสอบสิทธิ์การเข้าสู่ระบบ...</div>
+      </div>
+    );
+  }
+
   return <>{children}</>;
 }

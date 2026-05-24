@@ -1,32 +1,213 @@
-/* โหลดฟอนต์ IBM Plex Sans Thai */
-@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&display=swap");
-
-@import "tailwindcss";
+﻿@import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #000000;
+  --background: #f4f7fb;
+  --foreground: #0f1f3b;
+  --surface: #ffffff;
+  --surface-soft: #f7f9fc;
+  --border-soft: #dbe4f0;
+  --text-muted: #5a6b85;
+  --primary: #0b3a75;
+  --primary-soft: #e7effa;
+  --primary-hover: #082f60;
+  --success: #0f8a62;
+  --danger: #b42318;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --shadow-soft: 0 8px 24px rgba(16, 24, 40, 0.06);
+  --shadow-raise: 0 16px 36px rgba(16, 24, 40, 0.1);
 }
 
-/* ตั้งค่า default font ให้ Tailwind */
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-
-  /* ให้ฟอนต์ Sans ใช้ IBM Plex Sans Thai */
-  --font-sans: "IBM Plex Sans Thai", sans-serif;
+  --font-sans: var(--font-ibm-plex-sans-thai);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #ffffff;
-    --foreground: #000000;
-  }
-}
-
-/* APPLY FONT TO BODY */
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: "IBM Plex Sans Thai", sans-serif;
+  font-family:
+    var(--font-ibm-plex-sans-thai),
+    "IBM Plex Sans Thai",
+    "Noto Sans Thai",
+    "Sarabun",
+    system-ui,
+    sans-serif;
+  min-height: 100vh;
+}
+
+button,
+input,
+select,
+textarea {
+  font-family: inherit;
+}
+
+* {
+  border-color: var(--border-soft);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+a,
+button {
+  transition: all 0.2s ease;
+}
+
+:focus-visible {
+  outline: 2px solid #2f66b2;
+  outline-offset: 2px;
+}
+
+.app-shell {
+  width: min(1200px, 100%);
+  margin-inline: auto;
+  padding-inline: clamp(0.9rem, 2vw, 1.5rem);
+}
+
+.section-card {
+  background: var(--surface);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-soft);
+}
+
+.section-card-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-raise);
+}
+
+.page-hero {
+  background: linear-gradient(135deg, #0c3f7f 0%, #1d5aa7 100%);
+  border-radius: var(--radius-lg);
+  color: #ffffff;
+  box-shadow: var(--shadow-soft);
+}
+
+.btn-primary {
+  background: var(--primary);
+  color: #ffffff;
+  border-radius: 0.75rem;
+  border: 1px solid transparent;
+  font-weight: 500;
+}
+
+.btn-primary:hover {
+  background: var(--primary-hover);
+}
+
+.btn-secondary {
+  background: #ffffff;
+  color: var(--primary);
+  border: 1px solid #bfd0ea;
+  border-radius: 0.75rem;
+  font-weight: 500;
+}
+
+.btn-secondary:hover {
+  background: #f3f7fd;
+}
+
+.btn-danger {
+  background: var(--danger);
+  color: #ffffff;
+  border-radius: 0.75rem;
+  font-weight: 500;
+}
+
+.form-input,
+.form-select,
+.form-textarea {
+  width: 100%;
+  border: 1px solid #c5d2e4;
+  background: #ffffff;
+  border-radius: 0.75rem;
+  color: #102544;
+  padding: 0.65rem 0.85rem;
+  font-size: 0.875rem;
+}
+
+.form-input:focus,
+.form-select:focus,
+.form-textarea:focus {
+  border-color: #2f66b2;
+  box-shadow: 0 0 0 3px rgba(47, 102, 178, 0.14);
+  outline: none;
+}
+
+.field-label {
+  display: block;
+  font-size: 0.75rem;
+  line-height: 1rem;
+  color: var(--text-muted);
+  margin-bottom: 0.35rem;
+}
+
+.state-box {
+  border-radius: 0.85rem;
+  border: 1px solid var(--border-soft);
+  background: var(--surface-soft);
+  color: var(--text-muted);
+  padding: 1rem;
+  font-size: 0.875rem;
+}
+
+.table-wrap {
+  overflow-x: auto;
+  border-radius: 0.85rem;
+}
+
+.data-table {
+  width: 100%;
+  min-width: 720px;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+}
+
+.data-table th {
+  background: #f4f7fc;
+  color: #314766;
+  text-align: left;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.data-table th,
+.data-table td {
+  padding: 0.7rem 0.85rem;
+  border-bottom: 1px solid #e4ebf4;
+  vertical-align: top;
+}
+
+.data-table tbody tr:hover {
+  background: #f9fbff;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.15rem 0.65rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
+.scrollbar-thin::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: #ced8e7;
+  border-radius: 999px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: #f0f4fa;
 }

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import SidebarLayout from "@/components/SidebarLayout";
 import React, { useEffect, useState, useMemo } from "react";
@@ -19,19 +19,15 @@ export default function HomePage() {
   const router = useRouter();
   const pageSize = 15;
 
-  /* ================= FETCH ================= */
   useEffect(() => {
     const API_URL = process.env.NEXT_PUBLIC_API_URL;
     fetch(`${API_URL}/api/master/form-new-findings`)
       .then((res) => res.json())
-      .then((json) =>
-        json.success ? setFindings(json.data) : setError(json.error)
-      )
+      .then((json) => (json.success ? setFindings(json.data) : setError(json.error)))
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
   }, []);
 
-  /* ================= FILTER ================= */
   const filtered = useMemo(() => {
     return findings
       .filter((i) =>
@@ -40,31 +36,17 @@ export default function HomePage() {
           .toLowerCase()
           .includes(searchTerm.toLowerCase())
       )
-      .filter((i) =>
-        statusFilter === "all" ? true : i.status === statusFilter
-      );
+      .filter((i) => (statusFilter === "all" ? true : i.status === statusFilter));
   }, [findings, searchTerm, statusFilter]);
 
-  /* ================= PAGINATION ================= */
   const totalPages = Math.ceil(filtered.length / pageSize) || 1;
-  const paginated = filtered.slice(
-    (currentPage - 1) * pageSize,
-    currentPage * pageSize
-  );
+  const paginated = filtered.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
   const pages = useMemo(() => {
-    const setPages = new Set([
-      1,
-      currentPage - 1,
-      currentPage,
-      currentPage + 1,
-      totalPages,
-    ]);
-    const arr = [...setPages]
-      .filter((p) => p >= 1 && p <= totalPages)
-      .sort((a, b) => a - b);
+    const setPages = new Set([1, currentPage - 1, currentPage, currentPage + 1, totalPages]);
+    const arr = [...setPages].filter((p) => p >= 1 && p <= totalPages).sort((a, b) => a - b);
 
-    let result = [];
+    const result = [];
     let last = 0;
     arr.forEach((p) => {
       if (p - last > 1) result.push("...");
@@ -74,7 +56,6 @@ export default function HomePage() {
     return result;
   }, [currentPage, totalPages]);
 
-  /* ================= EXPORT ================= */
   const exportCSV = () => {
     const rows = filtered.map((r) => ({
       report_code: r.report_code,
@@ -83,15 +64,12 @@ export default function HomePage() {
       status: r.status,
     }));
 
-    const csv = [
-      ["Report Code", "Title TH", "Title EN", "Status"],
-      ...rows.map((r) => [
-        r.report_code,
-        `"${r.report_title_th ?? ""}"`,
-        `"${r.report_title_en ?? ""}"`,
-        `"${r.status ?? ""}"`,
-      ]),
-    ]
+    const csv = [["Report Code", "Title TH", "Title EN", "Status"], ...rows.map((r) => [
+      r.report_code,
+      `"${r.report_title_th ?? ""}"`,
+      `"${r.report_title_en ?? ""}"`,
+      `"${r.status ?? ""}"`,
+    ])]
       .map((e) => e.join(","))
       .join("\n");
 
@@ -109,152 +87,115 @@ export default function HomePage() {
     saveAs(new Blob([buf]), "findings.xlsx");
   };
 
-  /* ================= STATUS BADGE ================= */
   const StatusBadge = ({ status }) => {
-    const style = status?.includes("ยืนยัน")
+    const style = status?.includes("อนุมัติ")
       ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-      : status?.includes("รอตรวจ")
+      : status?.includes("รอดำเนินการ")
       ? "bg-amber-50 text-amber-700 border-amber-200"
-      : "bg-gray-50 text-gray-700 border-gray-200";
+      : "bg-slate-100 text-slate-700 border-slate-200";
 
     return (
-      <span
-        className={`inline-flex items-center gap-1 px-2 py-0.5
-        rounded-full text-[11px] border ${style}`}
-      >
-        <span className="w-1.5 h-1.5 rounded-full bg-current" />
+      <span className={`chip border ${style}`}>
+        <span className="h-1.5 w-1.5 rounded-full bg-current" />
         {status}
       </span>
     );
   };
 
-  /* ================= RENDER ================= */
   return (
     <SidebarLayout>
-      <div className="max-w-6xl mx-auto p-6 space-y-6">
-        {/* ================= HEADER ================= */}
-        <div className="bg-[#000080] rounded-xl px-6 py-4 shadow-sm">
-          <h1 className="text-lg font-semibold text-white tracking-wide">
-            PSU TRIUP ACT
-          </h1>
-          <p className="text-xs text-gray-200 mt-1">
-            ระบบรายงานผลงานวิจัย
-          </p>
-        </div>
+      <div className="app-shell space-y-5">
+        <section className="page-hero px-6 py-6">
+          <h1 className="text-2xl font-semibold">PSU TRIUP ACT</h1>
+          <p className="mt-1 text-sm text-blue-100">รายการผลงานวิจัยและสถานะการรายงาน TRIUP</p>
+        </section>
 
-        {/* ================= FILTER ================= */}
-        <div className="bg-white border border-gray-200 rounded-xl px-4 py-3
-        flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-          <div className="flex flex-col md:flex-row gap-2">
-            <input
-              className="w-full md:w-72 px-3 py-2 text-xs
-              border border-gray-300 rounded-md
-              focus:outline-none focus:border-[#000080]"
-              placeholder="ค้นหา..."
-              value={searchTerm}
-              onChange={(e) => {
-                setSearchTerm(e.target.value);
-                setCurrentPage(1);
-              }}
-            />
-            <select
-              className="w-full md:w-56 px-3 py-2 text-xs
-              border border-gray-300 rounded-md
-              focus:outline-none focus:border-[#000080]"
-              value={statusFilter}
-              onChange={(e) => {
-                setStatusFilter(e.target.value);
-                setCurrentPage(1);
-              }}
-            >
-              <option value="all">สถานะทั้งหมด</option>
-              {[...new Set(findings.map((i) => i.status))].map((st) => (
-                <option key={st}>{st}</option>
-              ))}
-            </select>
+        <section className="section-card p-4 sm:p-5">
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+            <div className="grid w-full gap-3 sm:grid-cols-2 lg:max-w-2xl">
+              <div>
+                <label className="field-label" htmlFor="finding-search">
+                  ค้นหา
+                </label>
+                <input
+                  id="finding-search"
+                  className="form-input"
+                  placeholder="ค้นหา..."
+                  value={searchTerm}
+                  onChange={(e) => {
+                    setSearchTerm(e.target.value);
+                    setCurrentPage(1);
+                  }}
+                />
+              </div>
+
+              <div>
+                <label className="field-label" htmlFor="status-filter">
+                  สถานะ
+                </label>
+                <select
+                  id="status-filter"
+                  className="form-select"
+                  value={statusFilter}
+                  onChange={(e) => {
+                    setStatusFilter(e.target.value);
+                    setCurrentPage(1);
+                  }}
+                >
+                  <option value="all">สถานะทั้งหมด</option>
+                  {[...new Set(findings.map((i) => i.status))].map((st) => (
+                    <option key={st}>{st}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap gap-2">
+              <button onClick={exportCSV} className="btn-secondary px-3 py-2 text-xs">
+                Export CSV
+              </button>
+              <button onClick={exportExcel} className="btn-primary px-3 py-2 text-xs">
+                Export Excel
+              </button>
+            </div>
           </div>
+        </section>
 
-          <div className="flex gap-2">
-            <button
-              onClick={exportCSV}
-              className="px-3 py-2 text-xs border
-              border-[#000080]/30 rounded-md
-              text-[#000080] hover:bg-[#000080]/5 transition"
-            >
-              Export CSV
-            </button>
-            <button
-              onClick={exportExcel}
-              className="px-3 py-2 text-xs border
-              border-[#000080]/30 rounded-md
-              text-[#000080] hover:bg-[#000080]/5 transition"
-            >
-              Export Excel
-            </button>
-          </div>
-        </div>
-
-        {/* ================= TABLE ================= */}
-        <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+        <section className="section-card p-3 sm:p-4">
           {loading ? (
-            <div className="p-6 text-sm text-gray-500">กำลังโหลดข้อมูล...</div>
+            <div className="state-box">กำลังโหลดข้อมูล...</div>
           ) : error ? (
-            <div className="p-6 text-sm text-red-500">{error}</div>
+            <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">{error}</div>
           ) : filtered.length === 0 ? (
-            <div className="p-6 text-sm text-gray-500">ไม่พบข้อมูล</div>
+            <div className="state-box">ไม่พบข้อมูลตามเงื่อนไขที่ค้นหา</div>
           ) : (
             <>
-              <div className="overflow-x-auto">
-                <table className="min-w-full table-fixed text-xs">
-                  <thead className="bg-gray-50 border-b border-gray-200">
+              <div className="table-wrap scrollbar-thin">
+                <table className="data-table min-w-[920px]">
+                  <thead>
                     <tr>
-                      <th className="px-4 py-2 text-left font-medium text-[#000080]">
-                        รหัสรายงาน
-                      </th>
-                      <th className="px-4 py-2 text-left font-medium text-[#000080]">
-                        ชื่อเรื่อง (TH)
-                      </th>
-                      <th className="px-4 py-2 text-left font-medium text-[#000080] hidden lg:table-cell">
-                        ชื่อเรื่อง (EN)
-                      </th>
-                      <th className="px-4 py-2 text-left font-medium text-[#000080]">
-                        สถานะ
-                      </th>
-                      <th className="px-4 py-2 text-center font-medium text-[#000080]">
-                        รายละเอียด
-                      </th>
+                      <th>รหัสรายงาน</th>
+                      <th>ชื่อรายงาน (TH)</th>
+                      <th className="hidden lg:table-cell">ชื่อรายงาน (EN)</th>
+                      <th>สถานะ</th>
+                      <th className="text-center">รายละเอียด</th>
                     </tr>
                   </thead>
                   <tbody>
                     {paginated.map((i) => (
-                      <tr
-                        key={i.findings_pk_id}
-                        className="border-b border-gray-100 hover:bg-gray-50 transition"
-                      >
-                        <td className="px-4 py-2 text-gray-700">
-                          {i.report_code}
-                        </td>
-                        <td className="px-4 py-2 text-gray-700 line-clamp-2">
-                          {i.report_title_th}
-                        </td>
-                        <td className="px-4 py-2 text-gray-700 line-clamp-1 hidden lg:table-cell">
-                          {i.report_title_en}
-                        </td>
-                        <td className="px-4 py-2">
+                      <tr key={i.findings_pk_id}>
+                        <td>{i.report_code}</td>
+                        <td className="max-w-[360px] truncate">{i.report_title_th}</td>
+                        <td className="hidden max-w-[260px] truncate lg:table-cell">{i.report_title_en}</td>
+                        <td>
                           <StatusBadge status={i.status} />
                         </td>
-                        <td className="px-4 py-2 text-center">
+                        <td className="text-center">
                           <button
-                            onClick={() =>
-                              router.push(
-                                `/user-psu/home/detail/${i.form_new_id}/owner`
-                              )
-                            }
-                            className="inline-flex items-center justify-center
-                            p-2 rounded-full text-[#000080]
-                            hover:bg-gray-100 transition"
+                            onClick={() => router.push(`/user-psu/home/detail/${i.form_new_id}/owner`)}
+                            className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 text-[#0b3a75] hover:bg-slate-100"
                           >
-                            <Search size={16} />
+                            <Search size={15} />
                           </button>
                         </td>
                       </tr>
@@ -263,21 +204,20 @@ export default function HomePage() {
                 </table>
               </div>
 
-              {/* ================= PAGINATION ================= */}
-              <div className="flex justify-end gap-2 px-4 py-3">
+              <div className="mt-4 flex justify-end gap-2">
                 {pages.map((p, idx) =>
                   p === "..." ? (
-                    <span key={idx} className="px-2 text-xs text-gray-400">
+                    <span key={idx} className="px-2 text-xs text-slate-400">
                       …
                     </span>
                   ) : (
                     <button
                       key={idx}
                       onClick={() => setCurrentPage(p)}
-                      className={`px-3 py-1 text-xs rounded-md border ${
+                      className={`rounded-lg border px-3 py-1 text-xs ${
                         p === currentPage
-                          ? "bg-[#000080] text-white border-[#000080]"
-                          : "bg-white text-gray-600 hover:bg-gray-100"
+                          ? "border-[#0b3a75] bg-[#0b3a75] text-white"
+                          : "border-slate-300 bg-white text-slate-600 hover:bg-slate-50"
                       }`}
                     >
                       {p}
@@ -287,7 +227,7 @@ export default function HomePage() {
               </div>
             </>
           )}
-        </div>
+        </section>
       </div>
     </SidebarLayout>
   );
