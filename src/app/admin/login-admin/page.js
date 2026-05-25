@@ -45,7 +45,7 @@ export default function LoginPage() {
           token
         )}; Path=/; SameSite=Lax; Expires=${new Date(expMs).toUTCString()}`;
 
-        router.replace("/admin/dashboard");
+        router.replace("/admin/system");
       } else {
         setMsg(res?.error || "Invalid email or password");
       }

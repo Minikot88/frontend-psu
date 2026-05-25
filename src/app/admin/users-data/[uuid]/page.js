@@ -49,22 +49,6 @@ export default function UserDetailPage() {
 
   const API = process.env.NEXT_PUBLIC_API_URL;
 
-  const getActiveAdmin = () => {
-    try {
-      const session = JSON.parse(localStorage.getItem("admin_profile")) || {};
-      return (
-        session?.user?.username ||
-        session?.profile?.username ||
-        session?.admin?.username ||
-        session?.username ||
-        `${session?.profile?.first_name ?? ""} ${session?.profile?.last_name ?? ""}`.trim() ||
-        "ผู้ดูแลระบบ"
-      );
-    } catch {
-      return "ผู้ดูแลระบบ";
-    }
-  };
-
   const load = useCallback(async () => {
     try {
       const res = await authAdminFetch(`${API}/api/admin/users/${uuid}`);
@@ -103,8 +87,6 @@ export default function UserDetailPage() {
   }, [load, router, uuid]);
 
   const updateRole = async () => {
-    const changedBy = getActiveAdmin();
-
     const confirm = await Swal.fire({
       title: "ยืนยันการเปลี่ยน Role?",
       text: "คุณต้องการอัปเดตสิทธิ์ผู้ใช้นี้ใช่หรือไม่",
@@ -121,7 +103,6 @@ export default function UserDetailPage() {
         method: "PUT",
         body: JSON.stringify({
           roles_id: rolesId,
-          changed_by: changedBy,
         }),
       });
 

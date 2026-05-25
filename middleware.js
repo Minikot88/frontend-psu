@@ -2,18 +2,24 @@
 
 export async function middleware(req) {
   const { pathname } = req.nextUrl;
+  const ADMIN_SYSTEM_PATH = "/admin/system";
 
-  // à¹„à¸¡à¹ˆà¹ƒà¸Šà¹ˆ admin â†’ à¸œà¹ˆà¸²à¸™
+  // not admin -> allow
   if (!pathname.startsWith("/admin")) {
     return NextResponse.next();
   }
 
-  // à¸«à¸™à¹‰à¸² login-admin â†’ à¸œà¹ˆà¸²à¸™
+  // admin login page -> allow
   if (pathname.startsWith("/admin/login-admin")) {
     return NextResponse.next();
   }
 
-  // à¸­à¹ˆà¸²à¸™ cookie admin
+  // Require admin auth only for /admin/system
+  if (!pathname.startsWith(ADMIN_SYSTEM_PATH)) {
+    return NextResponse.next();
+  }
+
+  // read admin cookie
   const token = req.cookies.get("admin_session")?.value;
 
   if (!token) {
@@ -40,7 +46,7 @@ export async function middleware(req) {
       data?.session?.roles_id ??
       data?.role?.roles_id;
 
-    // à¸­à¸™à¸¸à¸à¸²à¸•à¹€à¸‰à¸žà¸²à¸° ADMIN (1000) / CEO (900)
+    // allow only ADMIN (1000) / CEO (900)
     if (![1000, 900].includes(roleId)) {
       const url = req.nextUrl.clone();
       url.pathname = "/403";

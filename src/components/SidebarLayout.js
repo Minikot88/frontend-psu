@@ -11,7 +11,6 @@ import {
   LayoutGrid,
   Settings2,
   ChevronLeft,
-  ChevronRight,
   Circle,
 } from "lucide-react";
 
@@ -157,6 +156,7 @@ export default function SidebarLayout({ children }) {
       { href: "/admin/dashboard", label: "Dashboard", icon: LayoutGrid },
       { href: "/admin/system", label: "System", icon: Settings2 },
       { href: "/admin/users-data", label: "Users", icon: User },
+      { href: "/admin/settings-dashboard", label: "Dashboard Banner", icon: Settings2 },
     ],
     []
   );

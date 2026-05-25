@@ -7,8 +7,11 @@ import { saveAs } from "file-saver";
 import { Search } from "lucide-react";
 import { useRouter } from "next/navigation";
 
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+
 export default function HomePage() {
   const [findings, setFindings] = useState([]);
+  const [dashboardBanner, setDashboardBanner] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -20,12 +23,22 @@ export default function HomePage() {
   const pageSize = 15;
 
   useEffect(() => {
-    const API_URL = process.env.NEXT_PUBLIC_API_URL;
-    fetch(`${API_URL}/api/master/form-new-findings`)
+    fetch(`${API_BASE}/api/master/form-new-findings`)
       .then((res) => res.json())
       .then((json) => (json.success ? setFindings(json.data) : setError(json.error)))
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
+
+    fetch(`${API_BASE}/api/dashboard-banner`)
+      .then((res) => res.json())
+      .then((json) => {
+        if (json?.success && json?.data?.image_url) {
+          setDashboardBanner(json.data);
+        } else {
+          setDashboardBanner(null);
+        }
+      })
+      .catch(() => setDashboardBanner(null));
   }, []);
 
   const filtered = useMemo(() => {
@@ -105,6 +118,16 @@ export default function HomePage() {
   return (
     <SidebarLayout>
       <div className="app-shell space-y-5">
+        {dashboardBanner?.image_url && (
+          <section className="section-card overflow-hidden p-2">
+            <img
+              src={`${API_BASE}${dashboardBanner.image_url}`}
+              alt={dashboardBanner.title || "Dashboard Banner"}
+              className="h-auto w-full rounded-xl object-cover"
+            />
+          </section>
+        )}
+
         <section className="page-hero px-6 py-6">
           <h1 className="text-2xl font-semibold">PSU TRIUP ACT</h1>
           <p className="mt-1 text-sm text-blue-100">รายการผลงานวิจัยและสถานะการรายงาน TRIUP</p>
