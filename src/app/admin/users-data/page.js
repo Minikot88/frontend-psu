@@ -3,8 +3,21 @@
 import SidebarLayout from "@/components/SidebarLayout";
 import Link from "next/link";
 import { useEffect, useState, useMemo } from "react";
+import { authAdminFetch, clearAdminAuth } from "@/utils/auth-admin";
+import { useRouter } from "next/navigation";
+
+const roleMap = {
+  900: { name: "CEO" },
+  1000: { name: "ผู้ดูแลระบบ" },
+  2000: { name: "เจ้าหน้าที่วิจัย" },
+  3000: { name: "ผู้ใช้งานทั่วไป" },
+  4000: { name: "ผู้ร่วมวิจัยภายนอก" },
+  5000: { name: "ผู้ชมข้อมูล" },
+  6000: { name: "อื่นๆ" },
+};
 
 export default function UsersPage() {
+  const router = useRouter();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -14,35 +27,30 @@ export default function UsersPage() {
 
   const pageSize = 10;
 
-  const roleMap = {
-    900: { name: "CEO" },
-    1000: { name: "ผู้ดูแลระบบ" },
-    2000: { name: "เจ้าหน้าที่วิจัย" },
-    3000: { name: "ผู้ใช้งานทั่วไป" },
-    4000: { name: "ผู้ร่วมวิจัยภายนอก" },
-    5000: { name: "ผู้ชมข้อมูล" },
-    6000: { name: "อื่นๆ" },
-  };
-
   useEffect(() => {
-    const API = process.env.NEXT_PUBLIC_API_URL;
+    const apiBase = process.env.NEXT_PUBLIC_API_URL;
 
     async function load() {
       try {
-        const res = await fetch(`${API}/api/admin/users`);
+        const res = await authAdminFetch(`${apiBase}/api/admin/users`);
         const json = await res.json();
 
         if (json.success) setUsers(json.data || []);
         else throw new Error(json.error);
       } catch (err) {
-        setError(err.message);
+        if (err?.status === 401) {
+          clearAdminAuth();
+          router.replace("/admin/login-admin");
+          return;
+        }
+        setError(err.message || "ไม่สามารถโหลดข้อมูลผู้ใช้งานได้");
       } finally {
         setLoading(false);
       }
     }
 
     load();
-  }, []);
+  }, [router]);
 
   const roleCount = users.reduce((acc, u) => {
     acc[u.roles_id] = (acc[u.roles_id] || 0) + 1;

@@ -2,14 +2,16 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { clearAdminAuth, getAdminToken } from "@/utils/auth-admin";
 
 export default function useAdminGuard() {
   const router = useRouter();
   const [allowed, setAllowed] = useState(false);
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
+    const token = getAdminToken();
     if (!token) {
+      clearAdminAuth();
       router.replace("/admin/login-admin");
       return;
     }
@@ -19,10 +21,12 @@ export default function useAdminGuard() {
     })
       .then(async (res) => {
         if (res.status === 401) {
+          clearAdminAuth();
           router.replace("/admin/login-admin");
           return;
         }
         if (!res.ok) {
+          clearAdminAuth();
           router.replace("/admin/login-admin");
           return;
         }
@@ -42,6 +46,7 @@ export default function useAdminGuard() {
         setAllowed(true);
       })
       .catch(() => {
+        clearAdminAuth();
         router.replace("/admin/login-admin");
       });
   }, [router]);

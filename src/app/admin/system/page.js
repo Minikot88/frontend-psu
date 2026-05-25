@@ -3,6 +3,7 @@
 import SidebarLayout from "@/components/SidebarLayout";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { authAdminFetch, clearAdminAuth, getAdminToken } from "@/utils/auth-admin";
 
 export default function UsersPage() {
   const router = useRouter();
@@ -24,25 +25,19 @@ export default function UsersPage() {
 
   useEffect(() => {
     const checkSession = async () => {
-      const token = localStorage.getItem("token");
+      const token = getAdminToken();
       if (!token) {
+        clearAdminAuth();
         router.replace("/admin/login-admin");
         return;
       }
 
       try {
-        const res = await fetch(`${API}/api/login-api-triup/me`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-
-        if (!res.ok) {
-          localStorage.clear();
-          router.replace("/admin/login-admin");
-          return;
-        }
+        await authAdminFetch(`${API}/api/login-api-triup/me`);
 
         setChecking(false);
       } catch {
+        clearAdminAuth();
         router.replace("/admin/login-admin");
       }
     };
@@ -59,7 +54,7 @@ export default function UsersPage() {
   }
 
   const logout = async () => {
-    const token = localStorage.getItem("token");
+    const token = getAdminToken();
 
     try {
       if (token) {
@@ -72,11 +67,7 @@ export default function UsersPage() {
       }
     } catch (e) {
     } finally {
-      localStorage.removeItem("token");
-      localStorage.removeItem("token_exp");
-      localStorage.removeItem("roles_id");
-      document.cookie =
-        "admin_session=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax";
+      clearAdminAuth();
 
       router.replace("/user-psu/home");
     }

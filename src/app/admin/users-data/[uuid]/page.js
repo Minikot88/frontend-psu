@@ -2,9 +2,10 @@
 
 import SidebarLayout from "@/components/SidebarLayout";
 import { useRouter, useParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Swal from "sweetalert2";
 import { User, Building2, Briefcase, Shield, ArrowLeft } from "lucide-react";
+import { authAdminFetch, clearAdminAuth, getAdminToken } from "@/utils/auth-admin";
 
 const roleMap = {
   900: "CEO",
@@ -50,41 +51,56 @@ export default function UserDetailPage() {
 
   const getActiveAdmin = () => {
     try {
-      const session = JSON.parse(localStorage.getItem("admin_session")) || {};
+      const session = JSON.parse(localStorage.getItem("admin_profile")) || {};
       return (
         session?.user?.username ||
         session?.profile?.username ||
         session?.admin?.username ||
         session?.username ||
         `${session?.profile?.first_name ?? ""} ${session?.profile?.last_name ?? ""}`.trim() ||
-        "unknown"
+        "ผู้ดูแลระบบ"
       );
     } catch {
-      return "unknown";
+      return "ผู้ดูแลระบบ";
     }
   };
 
-  const load = async () => {
+  const load = useCallback(async () => {
     try {
-      const res = await fetch(`${API}/api/admin/users/${uuid}`);
+      const res = await authAdminFetch(`${API}/api/admin/users/${uuid}`);
       const json = await res.json();
 
       setUser(json.data);
       setRolesId(Number(json.data.roles_id));
 
-      const logRes = await fetch(`${API}/api/admin/users/${uuid}/role-log`);
+      const logRes = await authAdminFetch(`${API}/api/admin/users/${uuid}/role-log`);
       const logJson = await logRes.json();
       setLogs(logJson.data || []);
     } catch (err) {
-      console.error(err);
+      if (err?.status === 401) {
+        clearAdminAuth();
+        router.replace("/admin/login-admin");
+        return;
+      }
+      if (err?.status === 403) {
+        Swal.fire("ไม่มีสิทธิ์เข้าถึง", "บัญชีนี้ไม่มีสิทธิ์สำหรับหน้านี้", "error");
+        router.replace("/user-psu/home");
+        return;
+      }
+      Swal.fire("เกิดข้อผิดพลาด", "ไม่สามารถโหลดข้อมูลผู้ใช้งานได้", "error");
     } finally {
       setLoading(false);
     }
-  };
+  }, [API, router, uuid]);
 
   useEffect(() => {
+    if (!getAdminToken()) {
+      clearAdminAuth();
+      router.replace("/admin/login-admin");
+      return;
+    }
     if (uuid) load();
-  }, [uuid]);
+  }, [load, router, uuid]);
 
   const updateRole = async () => {
     const changedBy = getActiveAdmin();
@@ -100,23 +116,35 @@ export default function UserDetailPage() {
 
     if (!confirm.isConfirmed) return;
 
-    await fetch(`${API}/api/admin/users/${uuid}/role`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        roles_id: rolesId,
-        changed_by: changedBy,
-      }),
-    });
+    try {
+      await authAdminFetch(`${API}/api/admin/users/${uuid}/role`, {
+        method: "PUT",
+        body: JSON.stringify({
+          roles_id: rolesId,
+          changed_by: changedBy,
+        }),
+      });
 
-    Swal.fire({
-      icon: "success",
-      title: "บันทึกสำเร็จ",
-      timer: 1200,
-      showConfirmButton: false,
-    });
+      Swal.fire({
+        icon: "success",
+        title: "บันทึกสำเร็จ",
+        timer: 1200,
+        showConfirmButton: false,
+      });
 
-    load();
+      load();
+    } catch (err) {
+      if (err?.status === 401) {
+        clearAdminAuth();
+        router.replace("/admin/login-admin");
+        return;
+      }
+      if (err?.status === 403) {
+        Swal.fire("ไม่มีสิทธิ์ดำเนินการ", "อนุญาตเฉพาะผู้ดูแลระบบเท่านั้น", "error");
+        return;
+      }
+      Swal.fire("ไม่สำเร็จ", "ไม่สามารถอัปเดตสิทธิ์ผู้ใช้งานได้", "error");
+    }
   };
 
   if (loading) {
@@ -244,7 +272,7 @@ export default function UserDetailPage() {
                         <tr key={l.log_id}>
                           <td>{l.old_role_name}</td>
                           <td className="font-medium text-blue-700">{l.new_role_name}</td>
-                          <td>{l.changed_by}</td>
+                          <td>{l.changed_by || "ผู้ดูแลระบบ"}</td>
                           <td>{new Date(l.changed_at).toLocaleString("th-TH")}</td>
                         </tr>
                       ))

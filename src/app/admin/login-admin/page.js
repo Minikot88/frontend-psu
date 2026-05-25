@@ -34,6 +34,13 @@ export default function LoginPage() {
         const expMs = new Date(expISO).getTime();
         localStorage.setItem("token", token);
         localStorage.setItem("token_exp", String(expMs));
+        localStorage.setItem(
+          "admin_profile",
+          JSON.stringify({
+            user: { username: res?.user?.username || email?.trim() || "admin" },
+            session: { roles_id: res?.session?.roles_id ?? null },
+          })
+        );
         document.cookie = `admin_session=${encodeURIComponent(
           token
         )}; Path=/; SameSite=Lax; Expires=${new Date(expMs).toUTCString()}`;
